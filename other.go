@@ -18,9 +18,9 @@ func RawConsole() js.Value { return console }
 
 type con struct{}
 
-func (con) Log(args ...interface{})   { console.Call("log", safeLogArgs(args)...) }
-func (con) Warn(args ...interface{})  { console.Call("warn", safeLogArgs(args)...) }
-func (con) Error(args ...interface{}) { console.Call("error", safeLogArgs(args)...) }
+func (con) Log(args ...interface{})   { console.Call("log", safeArgs(args)...) }
+func (con) Warn(args ...interface{})  { console.Call("warn", safeArgs(args)...) }
+func (con) Error(args ...interface{}) { console.Call("error", safeArgs(args)...) }
 
 func ValueOf(x interface{}) (o Object) {
 	if err := tryCall(func() { o = Object{v: js.ValueOf(x)} }); err != "" {
@@ -47,7 +47,7 @@ func ValueOf(x interface{}) (o Object) {
 	return
 }
 
-func safeLogArgs(in []interface{}) []interface{} {
+func safeArgs(in []interface{}) []interface{} {
 	out := in[:0]
 	for _, v := range in {
 		out = append(out, ValueOf(v))
@@ -63,4 +63,12 @@ func tryCall(fn func()) (err string) {
 	}()
 	fn()
 	return
+}
+
+func toString(v js.Value) string {
+	if v.Type() == js.TypeString {
+		return v.String()
+	}
+
+	return ""
 }

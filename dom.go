@@ -10,7 +10,7 @@ var (
 	document = js.Global().Get("document")
 	head     = document.Get("head")
 
-	Document doc
+	Document = doc{HTMLElement{document}}
 )
 
 func RawDocument() js.Value { return document }
@@ -35,49 +35,57 @@ type HTMLElement struct {
 	v js.Value
 }
 
-func toString(v js.Value) string {
-	if v.Type() == js.TypeString {
-		return v.String()
-	}
-
-	return ""
+func (e HTMLElement) Class() string {
+	return toString(e.v.Get("className"))
 }
 
-func (e HTMLElement) GetAttribute(key string) string {
-	return toString(e.v.Call("getAttribute", key))
+func (e HTMLElement) SetClass(s string) {
+	e.v.Set("className", s)
 }
 
-func (e HTMLElement) SetAttribute(key, value string) {
-	e.v.Call("setAttribute", key, value)
+func (e HTMLElement) ID() string {
+	return toString(e.v.Get("id"))
 }
 
-type ListenerOptions struct {
-	Capture bool
-	Once    bool
-	Passive bool
+func (e HTMLElement) SetID(s string) {
+	e.v.Set("id", s)
 }
 
-func (lo *ListenerOptions) JSValue() js.Value {
-	if lo == nil {
-		return js.Null()
-	}
-	o := object.New()
-	if lo.Capture {
-		o.Set("capture", true)
-	}
-	if lo.Once {
-		o.Set("once", true)
-	}
-	if lo.Passive {
-		o.Set("passive", true)
-	}
-	return o
+func (e HTMLElement) HasAttribute(s string) bool {
+	return e.v.Call("hasAttribute", s).Bool()
 }
 
+func (e HTMLElement) HasAttributeNS(ns string, name string) bool {
+	return e.v.Call("hasAttributeNS", ns, name).Bool()
+}
+
+func (e HTMLElement) GetAttribute(name string) string {
+	return toString(e.v.Call("getAttribute", name))
+}
+
+func (e HTMLElement) GetAttributeNS(ns, name string) string {
+	return toString(e.v.Call("getAttributeNS", ns, name))
+}
+
+func (e HTMLElement) SetAttribute(name, value string) {
+	e.v.Call("setAttribute", name, value)
+}
+
+func (e HTMLElement) SetAttributeNS(ns, name, value string) {
+	e.v.Call("setAttributeNS", ns, name, value)
+}
+
+func (e HTMLElement) AppendChild(child HTMLElement) {
+	e.v.Call("appendChild", child.v)
+}
+
+func (e HTMLElement) SetInnerHTML(html string) {
+	e.v.Set("innerHTML", html)
+}
+
+// unless opts.Once is true, this call will leak a js.Func when the element gets destroyed
 func (e HTMLElement) AddEventListener(evt string, cb func(evt Event), opts *ListenerOptions) {
-	var (
-		jcb js.Func
-	)
+	var jcb js.Func
 
 	jcb = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
 		if opts != nil && opts.Once {
@@ -90,11 +98,59 @@ func (e HTMLElement) AddEventListener(evt string, cb func(evt Event), opts *List
 	e.v.Call("addEventListener", evt, jcb, opts)
 }
 
+func (e HTMLElement) On(evt string, cb func(evt Event), once bool) {
+	var jcb js.Func
+
+	jcb = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		if once {
+			jcb.Release()
+		}
+		cb(event{args[0]})
+		return nil
+	})
+
+	e.v.Set("on"+evt, jcb)
+}
+
+func (e HTMLElement) QuerySelector(q string) HTMLElement {
+	return HTMLElement{e.v.Call("querySelector", q)}
+}
+
+// TODO NodeList
+func (e HTMLElement) QuerySelectorAll(q string) []HTMLElement {
+	// do NodeList
+	a := e.v.Call("querySelectorAll", q)
+	if a.Type() != js.TypeObject {
+		return nil
+	}
+	ln := a.Length()
+	out := make([]HTMLElement, ln)
+	for i := 0; i < ln; i++ {
+		out[i].v = a.Index(i)
+	}
+	return out
+
+}
+
+func (e HTMLElement) RawGet(k string) js.Value {
+	return e.v.Get(k)
+}
+
+func (e HTMLElement) RawSet(k string, v interface{}) {
+	e.v.Set(k, v)
+}
+
+func (e HTMLElement) RawCall(method string, args ...interface{}) js.Value {
+	return e.v.Call(method, args...)
+}
+
 func (e HTMLElement) Object() Object { return Object{v: e.v} }
 
 func (e HTMLElement) JSValue() js.Value { return e.v }
 
-type doc struct{}
+type doc struct {
+	HTMLElement
+}
 
 func (doc) CreateElement(typ string, props map[string]string) HTMLElement {
 	ele := HTMLElement{v: document.Call("createElement", typ)}

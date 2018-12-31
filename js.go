@@ -21,8 +21,8 @@ func Undefined() Object { return undefObj }
 func RawObject() js.Value { return object }
 
 // IsNull checks if an o is Null or Undefined
-func IsNull(o Object) bool {
-	return o == nullObj || o == undefObj
+func IsNull(o js.Wrapper) bool {
+	return o == js.Null() || o == js.Undefined()
 }
 
 // O is a shortcut for NewObject(false).SetMulti(keyVals...)
@@ -124,10 +124,7 @@ func (o Object) ReadOnly() Object { return Object{v: o.v, ro: true} }
 
 func (o Object) IsString() bool { return o.v.Type() == js.TypeString }
 func (o Object) String() string {
-	if o.IsString() {
-		return o.v.String()
-	}
-	return ""
+	return toString(o.v)
 }
 
 func (o Object) IsNumber() bool { return o.v.Type() == js.TypeNumber }
