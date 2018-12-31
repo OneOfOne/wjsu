@@ -11,16 +11,16 @@ import (
 var (
 	console = js.Global().Get("console")
 
-	Console con
+	Console ConsoleImpl
 )
 
 func RawConsole() js.Value { return console }
 
-type con struct{}
+type ConsoleImpl struct{}
 
-func (con) Log(args ...interface{})   { console.Call("log", safeArgs(args)...) }
-func (con) Warn(args ...interface{})  { console.Call("warn", safeArgs(args)...) }
-func (con) Error(args ...interface{}) { console.Call("error", safeArgs(args)...) }
+func (ConsoleImpl) Log(args ...interface{})   { console.Call("log", safeArgs(args)...) }
+func (ConsoleImpl) Warn(args ...interface{})  { console.Call("warn", safeArgs(args)...) }
+func (ConsoleImpl) Error(args ...interface{}) { console.Call("error", safeArgs(args)...) }
 
 func ValueOf(x interface{}) (o Object) {
 	if err := tryCall(func() { o = Object{v: js.ValueOf(x)} }); err != "" {

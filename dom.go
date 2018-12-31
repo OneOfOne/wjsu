@@ -10,7 +10,7 @@ var (
 	document = js.Global().Get("document")
 	head     = document.Get("head")
 
-	Document = doc{HTMLElement{document}}
+	Document = HTMLDocument{HTMLElement{document}}
 )
 
 func RawDocument() js.Value { return document }
@@ -148,11 +148,11 @@ func (e HTMLElement) Object() Object { return Object{v: e.v} }
 
 func (e HTMLElement) JSValue() js.Value { return e.v }
 
-type doc struct {
+type HTMLDocument struct {
 	HTMLElement
 }
 
-func (doc) CreateElement(typ string, props map[string]string) HTMLElement {
+func (HTMLDocument) CreateElement(typ string, props map[string]string) HTMLElement {
 	ele := HTMLElement{v: document.Call("createElement", typ)}
 	for k, v := range props {
 		ele.SetAttribute(k, v)
@@ -161,11 +161,11 @@ func (doc) CreateElement(typ string, props map[string]string) HTMLElement {
 	return ele
 }
 
-func (doc) Title() string {
+func (HTMLDocument) Title() string {
 	return toString(document.Get("title"))
 }
 
-func (doc) SetTitle(title string) {
+func (HTMLDocument) SetTitle(title string) {
 	document.Set("title", title)
 }
 
