@@ -1,3 +1,3 @@
-module github.com/OneOfOne/jsenv
+module github.com/OneOfOne/wjsu
 
 go 1.12

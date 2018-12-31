@@ -1,6 +1,6 @@
 //+build js,wasm
 
-package jsenv
+package wjsu
 
 import (
 	"fmt"

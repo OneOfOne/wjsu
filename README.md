@@ -1,12 +1,12 @@
-# jsenv [![GoDoc](https://godoc.org/github.com/OneOfOne/jsenv?status.svg)](https://godoc.org/github.com/OneOfOne/jsenv)
+# wjsu [![GoDoc](https://godoc.org/github.com/OneOfOne/wjsu?status.svg)](https://godoc.org/github.com/OneOfOne/wjsu)
 
-This is a helper package for [`syscall/js`](https://godoc.org/syscall/js).
+wjsu (aka Webassembly Javascript Utils) is a helper package for [`syscall/js`](https://godoc.org/syscall/js).
 
 Inpsired by [honnef.co/go/js/dom](https://github.com/dominikh/go-js-dom).
 
 ## Install
 
-    GOOS=js GOARCH=wasm go get -u github.com/OneOfOne/jsenv
+    GOOS=js GOARCH=wasm go get -u github.com/OneOfOne/wjsu
 
 * **note**: the package requires Go 1.12 for the `syscall/js` changes.
 
@@ -32,8 +32,8 @@ package main
 import (
 	"time"
 
-	// this helps with stutering, for example jsenv.Console.Log, 100% optional.
-	. "github.com/OneOfOne/jsenv"
+	// this helps with stutering, for example wjsu.Console.Log, 100% optional.
+	. "github.com/OneOfOne/wjsu"
 )
 
 func main() {

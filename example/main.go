@@ -5,8 +5,8 @@ package main
 import (
 	"time"
 
-	// this helps with stutering, for example jsenv.Console.Log, 100% optional.
-	. "github.com/OneOfOne/jsenv"
+	// this helps with stutering, for example wjsu.Console.Log, 100% optional.
+	. "github.com/OneOfOne/wjsu"
 )
 
 func main() {
