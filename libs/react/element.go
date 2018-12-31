@@ -14,9 +14,9 @@ type Element interface {
 	elem()
 }
 
-type ReactElement struct{ js.Value }
+type reactElement struct{ js.Value }
 
-func (ReactElement) elem() {}
+func (reactElement) elem() {}
 
 // E is a shorthand and wrapper for React.createElement
 // tag can either be a Component, a func() Component or a string,
@@ -41,7 +41,7 @@ func E(tag interface{}, childrenAndMaybeProps ...interface{}) Element {
 	}
 
 	if !props.Has("key") {
-		props.Set("key", "ele:"+strconv.Itoa(int(atomic.AddInt32(&eIdx, 1))))
+		props.Set("key", "auto:"+strconv.Itoa(int(atomic.AddInt32(&eIdx, 1))))
 	}
 
 	children := childrenAndMaybeProps[:0]
@@ -53,7 +53,6 @@ func E(tag interface{}, childrenAndMaybeProps ...interface{}) Element {
 
 	if cc := props.Get("children"); cc.IsArray() {
 		for i, a := 0, cc.Array(); i < a.Len(); i++ {
-			wjsu.Console.Log(i, a.Get(i))
 			children = append(children, a.Get(i))
 		}
 
@@ -66,8 +65,7 @@ func E(tag interface{}, childrenAndMaybeProps ...interface{}) Element {
 		tag = makeElement(tag, false)
 	}
 
-	wjsu.Console.Log(tag, props, children)
-	return ReactElement{RawCreateElement(tag, props, children)}
+	return reactElement{RawCreateElement(tag, props, children)}
 }
 
 func makeElement(v interface{}, invoke bool) interface{} {

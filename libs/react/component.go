@@ -112,7 +112,13 @@ type Component interface {
 	def() *ComponentDef
 }
 
-type ComponentWithName interface {
+type PureComponent interface {
+	Component
+
+	ShouldComponentUpdate(nextProps wjsu.Object, nextState wjsu.Object) bool
+}
+
+type NamedComponent interface {
 	Component
 
 	Name() string
@@ -122,18 +128,17 @@ func createCtor(ctor func() Component, invoke bool) js.Value {
 	var (
 		fn   js.Func
 		init bool
-
-		reactComp = RawReactComponent()
 	)
 
 	fn = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-		props := wjsu.ObjectOf(args[0], true)
-		obj := reactComp.New(props)
-		comp := ctor()
-		comp.def().init(obj, props)
+		var (
+			props = wjsu.ObjectOf(args[0], true)
+			comp  = ctor()
+			obj   js.Value
+		)
 
 		if !init {
-			if c, ok := comp.(ComponentWithName); ok {
+			if c, ok := comp.(NamedComponent); ok {
 				fn.Set("displayName", c.Name())
 			} else {
 				fn.Set("displayName", reflect.TypeOf(comp).Elem().Name())
@@ -142,12 +147,17 @@ func createCtor(ctor func() Component, invoke bool) js.Value {
 			init = true
 		}
 
-		if state := comp.Ctor(); state.Valid() {
-			obj.Set("state", state)
-			comp.def().State = state.ReadOnly()
+		if c, ok := comp.(PureComponent); ok {
+			obj = RawReactPureComponent().New(props)
+
+			obj.Set("shouldComponentUpdate", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+				return c.ShouldComponentUpdate(wjsu.ObjectOf(args[0], true), wjsu.ObjectOf(args[1], true))
+			}))
+		} else {
+			obj = RawReactComponent().New(props)
 		}
 
-		obj.Set("render", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		obj.Set("render", js.FuncOf(func(js.Value, []js.Value) interface{} {
 			return comp.Render()
 		}))
 
@@ -160,11 +170,17 @@ func createCtor(ctor func() Component, invoke bool) js.Value {
 			comp.ComponentWillUnmount()
 		}, false))
 
+		comp.def().init(obj, props)
+		if state := comp.Ctor(); state.Valid() {
+			obj.Set("state", state)
+			comp.def().State = state.ReadOnly()
+		}
+
 		return obj
 	})
 
 	if invoke {
-		o := wjsu.O("key", "ctor:"+strconv.Itoa(int(atomic.AddInt32(&ctorIdx, 1))))
+		o := wjsu.O("key", "auto:"+strconv.Itoa(int(atomic.AddInt32(&eIdx, 1))))
 		return RawCreateElement(fn, o)
 	}
 
@@ -193,7 +209,7 @@ func wrapFunc(ctor StatelessComponent, invoke bool) js.Value {
 	})
 
 	if invoke {
-		o := wjsu.O("key", "func:"+strconv.Itoa(int(atomic.AddInt32(&funcIdx, 1))))
+		o := wjsu.O("key", "auto:"+strconv.Itoa(int(atomic.AddInt32(&eIdx, 1))))
 		return RawCreateElement(fn, o)
 	}
 

@@ -44,12 +44,10 @@ func (h *Hello) Render() R.Element {
 	s := h.State
 
 	return R.E(nil, Null(),
-		H1,
-		R.E(H1, "w00t"),
 		R.E("h1", O("style", O("color", s.Get("color"))),
 			s.GetString("text")+": "+time.Now().UTC().String(),
 		),
-		R.E("button", O("onClick", h.Handler("onClick")), "toggle"),
+		R.E("button", O("onClick", h.Handler("onClick"), "key", "toggle"), "toggle"),
 	)
 }
 
@@ -61,6 +59,8 @@ func (App) Name() string { return "CoolApp" }
 func (App) Render() R.Element {
 	return R.E(nil, Null(),
 		R.E("h1", Null(), "Touchy the button"),
+		H1,
+		R.E(H1, "w00t"),
 		R.E(&Hello{}, Null()),
 	)
 }

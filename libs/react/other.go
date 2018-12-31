@@ -9,9 +9,7 @@ import (
 )
 
 var (
-	funcIdx int32
-	ctorIdx int32
-	eIdx    int32
+	eIdx int32
 )
 
 type (
@@ -29,7 +27,12 @@ func RawReactComponent() js.Value {
 	return RawReact().Get("Component")
 }
 
-func HasReact() bool { return wjsu.IsNull(RawReact()) }
+func RawReactPureComponent() js.Value {
+	return RawReact().Get("PureComponent")
+}
+
+func HasReact() bool    { return wjsu.IsNull(RawReact()) }
+func HasReactDOM() bool { return wjsu.IsNull(RawReactDOM()) }
 
 // Ref is a React.ref
 type Ref struct {
@@ -41,4 +44,4 @@ func (r Ref) JSValue() js.Value { return r.v }
 
 func CreateRef() Ref { return Ref{RawReact().Call("createRef")} }
 
-func Fragment() Element { return ReactElement{RawReact().Get("Fragment")} }
+func Fragment() Element { return reactElement{RawReact().Get("Fragment")} }
