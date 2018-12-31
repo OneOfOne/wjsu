@@ -47,6 +47,18 @@ func ValueOf(x interface{}) (o Object) {
 	return
 }
 
+func WrapFunc(fn func(), once bool) (jfn js.Func) {
+	jfn = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		if once {
+			jfn.Release()
+		}
+		fn()
+		return nil
+	})
+
+	return
+}
+
 func safeArgs(in []interface{}) []interface{} {
 	out := in[:0]
 	for _, v := range in {

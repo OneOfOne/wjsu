@@ -7,9 +7,13 @@ if [ ! -d "$P" ]; then
 	exit 1
 fi
 
-[ -f "${P}/index.html" ] || cp -v index.html "${P}/"
+[ -f "${P}/index.html" ] || cp -v "$(dirname $0)/index.html" "${P}/"
 cp -v "$(go env GOROOT)/misc/wasm/wasm_exec.js" "${P}/"
 
 cd "${P}"
 
-env GOOS=js GOARCH=wasm go build -ldflags="-s -w" -o main.wasm
+export GOOS=js
+export GOARCH=wasm
+
+goimports -w .
+go build -ldflags="-s -w" -o main.wasm

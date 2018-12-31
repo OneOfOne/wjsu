@@ -79,6 +79,10 @@ func (e HTMLElement) AppendChild(child HTMLElement) {
 	e.v.Call("appendChild", child.v)
 }
 
+func (e HTMLElement) RemoveChild(child HTMLElement) {
+	e.v.Call("removeChild", child.v)
+}
+
 func (e HTMLElement) SetInnerHTML(html string) {
 	e.v.Set("innerHTML", html)
 }

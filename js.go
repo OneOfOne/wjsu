@@ -22,13 +22,15 @@ func RawObject() js.Value { return object }
 
 // IsNull checks if an o is Null or Undefined
 func IsNull(o js.Wrapper) bool {
-	return o == js.Null() || o == js.Undefined()
+	return o.JSValue() == js.Null() || o.JSValue() == js.Undefined()
 }
 
 // O is a shortcut for NewObject(false).SetMulti(keyVals...)
 func O(keyVals ...interface{}) Object {
 	return NewObject(false).SetMulti(keyVals...)
 }
+
+func ObjectOf(v js.Value, ro bool) Object { return Object{v: v, ro: ro} }
 
 func NewObject(ro bool) Object {
 	return Object{v: object.New(), ro: ro}
