@@ -3,7 +3,6 @@
 package wjsu
 
 import (
-	"fmt"
 	"reflect"
 	"syscall/js"
 )
@@ -41,7 +40,7 @@ func ValueOf(x interface{}) (o Object) {
 			}
 
 		default:
-			Console.Error(fmt.Sprintf("unsupported type: %T (%v)", x, x))
+			Console.Error("unsupported type:", rv.Type().String())
 		}
 	}
 	return
@@ -70,7 +69,7 @@ func safeArgs(in []interface{}) []interface{} {
 func tryCall(fn func()) (err string) {
 	defer func() {
 		if r := recover(); r != nil {
-			err = fmt.Sprint(r)
+			err, _ = r.(string)
 		}
 	}()
 	fn()

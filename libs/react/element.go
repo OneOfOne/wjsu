@@ -46,7 +46,7 @@ func E(tag interface{}, childrenAndMaybeProps ...interface{}) Element {
 
 	children := childrenAndMaybeProps[:0]
 	for _, c := range childrenAndMaybeProps {
-		if ele := makeElement(c, true); ele != js.Null() {
+		if ele := makeElement(c, true); ele != nil {
 			children = append(children, ele)
 		}
 	}
@@ -69,16 +69,20 @@ func E(tag interface{}, childrenAndMaybeProps ...interface{}) Element {
 }
 
 func makeElement(v interface{}, invoke bool) interface{} {
-	switch any := v.(type) {
+	switch v := v.(type) {
 	case Component:
-		return createCtor(func() Component { return any }, invoke)
+		return createCtor(func() Component { return v }, invoke)
 	case func() Component:
-		return createCtor(any, invoke)
+		return createCtor(v, invoke)
 	case StatelessComponent:
-		return wrapFunc(any, invoke)
+		return wrapFunc(v, invoke)
 	case func() Element:
-		return wrapFunc(func(wjsu.Object) Element { return any() }, invoke)
-	default:
-		return v
+		return wrapFunc(func(wjsu.Object) Element { return v() }, invoke)
+	case js.Wrapper:
+		if wjsu.IsNull(v) {
+			return nil
+		}
 	}
+
+	return v
 }

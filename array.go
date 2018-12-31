@@ -12,7 +12,7 @@ var (
 
 func RawArray() js.Value { return array }
 
-func IsArray(v js.Value) bool {
+func IsArray(v js.Wrapper) bool {
 	return array.Call("isArray", v).Bool()
 }
 

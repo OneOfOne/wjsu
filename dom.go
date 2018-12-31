@@ -173,7 +173,7 @@ func (HTMLDocument) SetTitle(title string) {
 	document.Set("title", title)
 }
 
-func AddScript(src string, deferProp bool) <-chan struct{} {
+func AddScript(src string, deferProp, isModule bool) <-chan struct{} {
 	var (
 		ch = make(chan struct{})
 		cb js.Func
@@ -190,7 +190,11 @@ func AddScript(src string, deferProp bool) <-chan struct{} {
 	ele.Set("onload", cb)
 
 	if deferProp {
-		ele.Call("setAttribute", "defer", "")
+		ele.Set("defer", "defer")
+	}
+
+	if isModule {
+		ele.Set("type", "module")
 	}
 
 	head.Call("appendChild", ele)
@@ -198,11 +202,11 @@ func AddScript(src string, deferProp bool) <-chan struct{} {
 	return ch
 }
 
-func LoadScripts(srcs ...string) <-chan struct{} {
+func LoadScripts(areModules bool, srcs ...string) <-chan struct{} {
 	chs := make([]<-chan struct{}, 0, len(srcs))
 	ch := make(chan struct{})
 	for _, src := range srcs {
-		chs = append(chs, AddScript(src, true))
+		chs = append(chs, AddScript(src, true, areModules))
 	}
 
 	go func() {
