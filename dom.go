@@ -10,8 +10,13 @@ var (
 	document = js.Global().Get("document")
 	head     = document.Get("head")
 
-	Document = HTMLDocument{HTMLElement{document}}
+	Document HTMLDocument
 )
+
+func Initialize() error {
+	Document = HTMLDocument{HTMLElement{document}}
+	return nil
+}
 
 func RawDocument() js.Value { return document }
 
