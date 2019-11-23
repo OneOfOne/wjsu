@@ -6,10 +6,13 @@ import (
 	"time"
 
 	// this helps with stutering, for example wjsu.Console.Log, 100% optional.
+
 	. "github.com/OneOfOne/wjsu"
 )
 
 func main() {
+	Initialize()
+
 	Console.Log("hello console", []int{1, -1}, map[string]float64{"a": 1, "z": -1})
 	Document.QuerySelector("div#loader").SetInnerHTML("hello world")
 

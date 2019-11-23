@@ -2,3 +2,4 @@ wasm_exec.js
 *.wasm
 *.gz
 *.br
+example/**/*.js

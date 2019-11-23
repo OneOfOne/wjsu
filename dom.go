@@ -7,13 +7,16 @@ import (
 )
 
 var (
-	document = js.Global().Get("document")
-	head     = document.Get("head")
-
+	document js.Value
+	head     js.Value
+	body js.Value
 	Document HTMLDocument
 )
 
 func Initialize() error {
+	document = js.Global().Get("document")
+	head = document.Get("head")
+	body = document.Get("body")
 	Document = HTMLDocument{HTMLElement{document}}
 	return nil
 }
@@ -176,6 +179,10 @@ func (HTMLDocument) Title() string {
 
 func (HTMLDocument) SetTitle(title string) {
 	document.Set("title", title)
+}
+
+func(HTMLDocument) Body() HTMLElement {
+	return HTMLElement{v: body}
 }
 
 func AddScript(src string, deferProp, isModule bool) <-chan struct{} {

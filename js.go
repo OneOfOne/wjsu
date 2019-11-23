@@ -7,23 +7,24 @@ import (
 )
 
 var (
-	object = js.Global().Get("Object")
+	object js.Value
 
-	nullObj  = Object{v: js.Null(), ro: true}
-	undefObj = Object{v: js.Undefined(), ro: true}
+	nullObj, undefObj Object
 
 	_ js.Wrapper = (*Object)(nil)
 )
+
+func init() {
+	object = js.Global().Get("Object")
+	nullObj  = Object{v: js.Null(), ro: true}
+	undefObj = Object{v: js.Undefined(), ro: true}
+}
 
 func Null() Object      { return nullObj }
 func Undefined() Object { return undefObj }
 
 func RawObject() js.Value { return object }
 
-// IsNull checks if an o is Null or Undefined
-func IsNull(o js.Wrapper) bool {
-	return o.JSValue() == js.Null() || o.JSValue() == js.Undefined()
-}
 
 // O is a shortcut for NewObject(false).SetMulti(keyVals...)
 func O(keyVals ...interface{}) Object {
