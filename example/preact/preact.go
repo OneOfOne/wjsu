@@ -13,20 +13,22 @@ func init() {
 	Preact = js.Global().Get("preact")
 }
 
-type Node interface {
-	Node() js.Wrapper
+type PreactElement interface {
+	Element() js.Value
 }
 
-type preactNode js.Value
+type preactNode struct {
+	js.Value
+}
 
-func (pn preactNode) Node() js.Wrapper { return js.Value(pn) }
+func (pn preactNode) Element() js.Value { return pn.Value }
 
-func H(tagOrComponent, props interface{}, children ...interface{}) Node {
-	n := preactNode(Preact.Call("h", tagOrComponent, props, ArgsToObjects(children)))
+func H(tagOrComponent, props interface{}, children ...interface{}) PreactElement {
+	n := preactNode{Preact.Call("h", tagOrComponent, props, ArgsToObjects(children))}
 	return n
 }
 
-func Render(node Node, parent interface{}) {
+func Render(node PreactElement, parent interface{}) {
 	switch p := parent.(type) {
 	case HTMLElement:
 		// do nothing
@@ -37,5 +39,5 @@ func Render(node Node, parent interface{}) {
 	default:
 		panic("unknown parent type: " + reflect.TypeOf(parent).String())
 	}
-	Preact.Call("render", node.Node().JSValue(), parent)
+	Preact.Call("render", node.Element(), parent)
 }

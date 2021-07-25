@@ -48,6 +48,10 @@ func (c *Component) Clone(name string) *Component {
 	return &cp
 }
 
+func (c *Component) Element() js.Value {
+	return H(c.JSValue(), nil).Element()
+}
+
 func (c *Component) JSValue() js.Value {
 	if !IsNull(c.comp) {
 		return c.comp
