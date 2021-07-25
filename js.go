@@ -1,4 +1,5 @@
-//+build js,wasm
+//go:build js && wasm
+// +build js,wasm
 
 package wjsu
 
@@ -16,7 +17,7 @@ var (
 
 func init() {
 	object = js.Global().Get("Object")
-	nullObj  = Object{v: js.Null(), ro: true}
+	nullObj = Object{v: js.Null(), ro: true}
 	undefObj = Object{v: js.Undefined(), ro: true}
 }
 
@@ -25,16 +26,19 @@ func Undefined() Object { return undefObj }
 
 func RawObject() js.Value { return object }
 
-
 // O is a shortcut for NewObject(false).SetMulti(keyVals...)
 func O(keyVals ...interface{}) Object {
 	return NewObject(false).SetMulti(keyVals...)
 }
 
-func ObjectOf(v js.Value, ro bool) Object { return Object{v: v, ro: ro} }
+func ObjectOf(v interface{}, readonly ...bool) Object {
+	o := ValueOf(v)
+	o.ro = len(readonly) > 0 && readonly[0]
+	return o
+}
 
-func NewObject(ro bool) Object {
-	return Object{v: object.New(), ro: ro}
+func NewObject(readonly ...bool) Object {
+	return Object{v: object.New(), ro: len(readonly) > 0 && readonly[0]}
 }
 
 func ObjectsFromJS(ro bool, values []js.Value) []Object {
@@ -47,7 +51,7 @@ func ObjectsFromJS(ro bool, values []js.Value) []Object {
 
 // Object wraps a js.Value
 type Object struct {
-	v  js.Value
+	v  js.Wrapper
 	ro bool
 }
 
@@ -63,9 +67,24 @@ func (o Object) SetMulti(keyVals ...interface{}) Object {
 	return o
 }
 
+func (o Object) IsFunc() bool { return o.Type() == js.TypeFunction }
+func (o Object) Release() {
+	if o.IsFunc() {
+		o.v.(js.Func).Release()
+	}
+}
+
+func (o Object) Call(args ...interface{}) Object {
+	return ObjectOf(o.v.(js.Func).Invoke(ArgsToObjects(args)...), false)
+}
+
+func (o Object) CallByName(name string, args ...interface{}) Object {
+	return ObjectOf(o.JSValue().Call(name, ArgsToObjects(args)...), false)
+}
+
 func (o Object) Has(k string) bool {
 	// have to use this so it wouldn't trigger react special properity checks
-	return o.v.Call("hasOwnProperty", k).Bool()
+	return o.JSValue().Call("hasOwnProperty", k).Bool()
 }
 
 func (o Object) Get(k string) Object {
@@ -73,7 +92,7 @@ func (o Object) Get(k string) Object {
 		return nullObj
 	}
 
-	return Object{v: o.v.Get(k)}
+	return Object{v: o.JSValue().Get(k)}
 }
 
 func (o Object) GetString(k string) string {
@@ -119,34 +138,61 @@ func (o Object) Set(k string, v interface{}) {
 		v = ValueOf(v)
 	}
 
-	o.v.Set(k, v)
+	o.JSValue().Set(k, v)
 }
 
 func (o Object) IsReadOnly() bool { return o.ro }
 func (o Object) ReadOnly() Object { return Object{v: o.v, ro: true} }
 
-func (o Object) IsString() bool { return o.v.Type() == js.TypeString }
+func (o Object) Type() js.Type {
+	if o.v == nil {
+		return js.TypeUndefined
+	}
+	return o.v.JSValue().Type()
+}
+func (o Object) IsString() bool { return o.Type() == js.TypeString }
 func (o Object) String() string {
-	return toString(o.v)
+	if o.IsString() {
+		return o.JSValue().String()
+	}
+	return ""
 }
 
-func (o Object) IsNumber() bool { return o.v.Type() == js.TypeNumber }
+func (o Object) IsNumber() bool { return o.v.JSValue().Type() == js.TypeNumber }
 func (o Object) Number() float64 {
 	if o.IsNumber() {
-		return o.v.Float()
+		return o.JSValue().Float()
 	}
 	return 0
 }
 
 func (o Object) IsArray() bool { return IsArray(o.v) }
-func (o Object) Array() Array  { return Array{o.v} }
+func (o Object) Array() Array {
+	if o.IsArray() {
+		return Array{o.v.JSValue()}
+	}
+	return Array{}
+}
 
 func (o Object) Copy() Object {
-	return Object{v: object.Call("assign", object.New(), o.v), ro: false}
+	return Object{v: object.Call("assign", object.New(), o), ro: false}
+}
+
+func (o Object) Merge(oo Object) Object {
+	return Object{v: object.Call("assign", o.Copy(), oo)}
 }
 
 func (o Object) Valid() bool {
 	return !IsNull(o)
 }
 
-func (o Object) JSValue() js.Value { return o.v }
+func (o Object) JSValue() js.Value {
+	if o.v != nil {
+		return o.v.JSValue()
+	}
+	return js.Undefined()
+}
+
+func (o Object) Prototype() Object {
+	return o.Get("prototype")
+}

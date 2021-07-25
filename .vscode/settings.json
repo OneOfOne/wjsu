@@ -2,5 +2,13 @@
 	"go.toolsEnvVars": {
 		"GOOS": "js",
 		"GOARCH": "wasm"
+	},
+		//"go.languageServerFlags": ["-rpc.trace"],
+	"gopls": {
+		"formatting.gofumpt": true,
+		"ui.diagnostic.staticcheck": true,
+		"ui.diagnostic.analyses": {
+			"ST1001": false,
+		}
 	}
 }

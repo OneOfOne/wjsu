@@ -1,4 +1,5 @@
-//+build js,wasm
+//go:build js && wasm
+// +build js,wasm
 
 package wjsu
 
@@ -7,21 +8,24 @@ import (
 )
 
 var (
+	window   js.Value
+	console  js.Value
 	document js.Value
 	head     js.Value
-	body js.Value
+	body     js.Value
 	Document HTMLDocument
 )
 
-func Initialize() error {
+func init() {
+	window = js.Global().Get("window")
+	console = js.Global().Get("console")
 	document = js.Global().Get("document")
 	head = document.Get("head")
 	body = document.Get("body")
 	Document = HTMLDocument{HTMLElement{document}}
-	return nil
 }
 
-func RawDocument() js.Value { return document }
+func Window() js.Value { return window }
 
 type Event interface {
 	PreventDefault()
@@ -141,7 +145,6 @@ func (e HTMLElement) QuerySelectorAll(q string) []HTMLElement {
 		out[i].v = a.Index(i)
 	}
 	return out
-
 }
 
 func (e HTMLElement) RawGet(k string) js.Value {
@@ -181,7 +184,7 @@ func (HTMLDocument) SetTitle(title string) {
 	document.Set("title", title)
 }
 
-func(HTMLDocument) Body() HTMLElement {
+func (HTMLDocument) Body() HTMLElement {
 	return HTMLElement{v: body}
 }
 

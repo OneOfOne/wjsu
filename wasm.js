@@ -4,6 +4,7 @@
 	let wasm;
 
 	function init() {
+		// @ts-ignore
 		const go = new Go();
 		if ('instantiateStreaming' in WebAssembly) {
 			WebAssembly.instantiateStreaming(fetch(WASM_URL), go.importObject).then(function(obj) {

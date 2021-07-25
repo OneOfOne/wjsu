@@ -9,12 +9,13 @@ if [ ! -d "$P" ]; then
 	exit 1
 fi
 
+export PATH=$(go env GOBIN):/bin
+
 [ -f "${P}/index.html" ] || cp -v "$(dirname $0)/index.html" "${P}/"
-cp -v "$(go env GOPATH)/src/github.com/tinygo-org/tinygo/targets/wasm_exec.js" "${P}/"
+cp -v "$(tinygo env TINYGOROOT)/targets/wasm_exec.js" "${P}/"
 cp -v "$(dirname $0)/wasm.js" "${P}/"
 
 cd "${P}"
 
 # goimports -w .
-TGO=$(go env GOBIN)/tinygo
-env PATH=/bin $TGO build -target wasm -tags go1.13 -o main.wasm .
+tinygo build -target wasm -o main.wasm .

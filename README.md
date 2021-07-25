@@ -103,6 +103,13 @@ GOOS=js GOARCH=wasm go build -o main.wasm
 go run serve.go
 ```
 
+#### Tinygo
+
+```sh
+$ pacman -S tinygo
+./tiny.sh path/to/project
+```
+
 ## VSCode settings
 
 ```json

@@ -1,26 +1,41 @@
 package main
 
 import (
+	"reflect"
 	"syscall/js"
 
 	. "github.com/OneOfOne/wjsu"
 )
 
-var (
-	preact js.Value
-)
+var Preact js.Value
 
 func init() {
-	preact = js.Global().Get("preact")
+	Preact = js.Global().Get("preact")
 }
 
-func H(name string, attrs Object, children ...interface{}) js.Wrapper {
-	if len(children) > 0 {
-		attrs.Set("children", children)
+type Node interface {
+	Node() js.Wrapper
+}
+
+type preactNode js.Value
+
+func (pn preactNode) Node() js.Wrapper { return js.Value(pn) }
+
+func H(tagOrComponent, props interface{}, children ...interface{}) Node {
+	n := preactNode(Preact.Call("h", tagOrComponent, props, ArgsToObjects(children)))
+	return n
+}
+
+func Render(node Node, parent interface{}) {
+	switch p := parent.(type) {
+	case HTMLElement:
+		// do nothing
+	case string:
+		parent = Document.Body().QuerySelector(p)
+	case nil:
+		parent = Document.Body()
+	default:
+		panic("unknown parent type: " + reflect.TypeOf(parent).String())
 	}
-	return preact.Call("h", name, attrs)
-}
-
-func Render(node, parent js.Wrapper) {
-	preact.Call("render", node, parent)
+	Preact.Call("render", node.Node().JSValue(), parent)
 }

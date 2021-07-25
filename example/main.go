@@ -1,4 +1,5 @@
-//+build js,wasm
+//go:build js && wasm
+// +build js,wasm
 
 package main
 
@@ -11,8 +12,6 @@ import (
 )
 
 func main() {
-	Initialize()
-
 	Console.Log("hello console", []int{1, -1}, map[string]float64{"a": 1, "z": -1})
 	Document.QuerySelector("div#loader").SetInnerHTML("hello world")
 
